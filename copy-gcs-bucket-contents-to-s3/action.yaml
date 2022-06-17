@@ -1,0 +1,114 @@
+name: Copy files from GCS to a new S3 bucket
+description: Copy files from GCS to a new S3 bucket
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: 'orange'
+  icon: 'hard-drive'
+inputs:
+  project_id_workload:
+    description: GCP project ID
+    required: true
+  cluster_name:
+    description: GKE cluster name
+    required: true
+  location:
+    description: GKE zone
+    required: true
+  secret_name:
+    description: name of bucket secret
+    required: true
+  app_namespace:
+    description: Namespace
+    required: true
+  project_id_bucket:
+    description: GCP project ID
+    required: true
+  bucket_name:
+    description: Bucket name
+    required: true
+  gcp_credentials_workload:
+    description: GCP Service Account Key to deploy workload
+    required: true
+  gcp_credentials_bucket:
+    description: GCP Service Account Key for source bucket
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup gcloud CLI workload
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ secrets.gcp_credentials_workload }}
+        project_id: ${{ inputs.project_id_workload }}
+
+    - name: Get GKE cluster credentials
+      uses: google-github-actions/get-gke-credentials@v0
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        location: ${{ inputs.location }}
+        credentials: ${{ secrets.gcp_credentials_workload }}
+
+    - name: Check bucket's secret exist
+      run: ${{ format('{0}/check-k8s-secret-exist.sh {1} {2}', github.action_path,
+        inputs.secret_name, inputs.app_namespace) }}
+      shell: bash
+
+    - name: Read AWS S3 bucket connection secret from K8s cluster
+      id: readSecret
+      run: |-
+        id=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.aws_access_key_id}} | base64 --decode)
+        secret=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.aws_secret_access_key}} | base64 --decode)
+        bucket=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.bucket_name}} | base64 --decode)
+        region=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.region}} | base64 --decode)
+        echo "::add-mask::$id"
+        echo "::add-mask::$secret"
+        echo "::set-output name=id::$id"
+        echo "::set-output name=secret::$secret"
+        echo "::set-output name=bucket::$bucket"
+        echo "::set-output name=region::$region"
+      shell: bash
+
+    - name: Configure AWS Credentials
+      run: |-
+        mkdir -p ~/.aws
+        cat > ~/.aws/credentials << EOF
+        [default]
+        aws_access_key_id=${{ steps.readSecret.outputs.id }}
+        aws_secret_access_key=${{ steps.readSecret.outputs.secret }}
+        region=${{ steps.readSecret.outputs.region }}
+        EOF
+      shell: bash
+
+    - name: Setup gcloud CLI bucket
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ secrets.gcp_credentials_bucket }}
+        project_id: ${{ inputs.project_id_bucket }}
+
+    - name: copy each item from GCS bucket to S3
+      env:
+        DIR: gcs
+      run: |-
+        aws configure set default.s3.max_concurrent_requests 50
+        mkdir ${DIR}
+        for path in $(gsutil ls gs://${{ inputs.bucket_name }})
+        do
+        echo "downloading each item from GCS bucket path=${path} to the folder=${DIR}"
+        for i in 1 2 3
+        do gsutil -m -q cp -r -U -c -L cp.log ${path} ${DIR} && break \
+          || echo "Failed attempt #$i out of 3 to download from GCS bucket path=${path} to the folder=${DIR}" \
+          && sleep 15
+        done
+        echo "uploading each item from the folder=${DIR} to the S3 bucket s3://${{ steps.readSecret.outputs.bucket }}"
+        aws s3 cp --recursive --only-show-errors ${DIR} s3://${{ steps.readSecret.outputs.bucket }}
+        echo "clean up all files from the folder=${DIR} to preserve disk space"
+        rm -rf ${DIR}/*
+        done
+        echo "Post Configure AWS Credentials clean up"
+        rm ~/.aws/credentials
+      shell: bash
