@@ -1,0 +1,44 @@
+name: Build and Push Container
+description: Build and Push Container
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: 'blue'
+  icon: 'package'
+inputs:
+  github_ref:
+    description: Github branch, tag or SHA to checkout
+    required: false
+  github_token:
+    description: A Github token PAT
+    required: true
+  github_user:
+    description: a username of a user
+    required: true
+  registry:
+    description: Container registry
+    required: false
+    default: ghcr.io
+  repository:
+    description: Container repository
+    required: false
+    default: ghcr.io/huma-engineering/py-ppserver
+  tag:
+    description: Container image tag
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        # The branch, tag or SHA to checkout. When checking out the repository that
+        # triggered a workflow, this defaults to the reference or SHA for that event.
+        # Otherwise, uses the default branch.
+        ref: ${{ inputs.github_ref }}
+
+    - name: Build and Push to ghcr
+      run: ${{ format('{0}/build_container.sh {1} {2} {3} {4} {5}',
+        github.action_path, inputs.github_token, inputs.github_user, inputs.tag,
+        inputs.repository, inputs.registry) }}
+      shell: bash
