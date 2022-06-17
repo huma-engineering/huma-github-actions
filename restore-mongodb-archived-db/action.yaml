@@ -1,0 +1,77 @@
+name: Restore MongoDB archived DB
+description: Restore MongoDB archived DB
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: 'green'
+  icon: 'database'
+inputs:
+  project_id:
+    description: GCP project ID
+    required: true
+  cluster_name:
+    description: GKE cluster name
+    required: true
+  location:
+    description: GKE zone
+    required: true
+  app_namespace:
+    description: Namespace
+    required: true
+  bucket_name:
+    description: Bucket name
+    required: true
+  db_namespace:
+    description: MongoDB Cluster Namespace
+    default: kubedb
+    required: false
+  db_service:
+    description: DB service name
+    required: true
+  db_user:
+    description: DB user's name
+    required: true
+  source_db_name:
+    description: DB name of the source
+    required: true
+  gcp_credentials:
+    description: GCP Service Account Key
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # ref: https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/
+    - name: Setup gcloud CLI
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ inputs.gcp_credentials }}
+        project_id: ${{ inputs.project_id }}
+
+    - name: Get GKE cluster credentials
+      uses: google-github-actions/get-gke-credentials@v0
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        location: ${{ inputs.location }}
+        credentials: ${{ inputs.gcp_credentials }}
+
+    - name: Download an object from a bucket
+      env:
+        dump_name: dump_hs_sandbox_${{ inputs.source_db_name }}.gz
+      run: gsutil cp gs://${{ inputs.bucket_name }}/${{ env.dump_name }} .
+      shell: bash
+
+    - name: Check that MongoDB pod is running
+      run: ${{ format('{0}/check-k8s-pod-running.sh {1} {2}', github.action_path,
+        inputs.db_service, inputs.db_namespace) }}
+      shell: bash
+
+    - name: Check that MongoDBUser's secret exist
+      run: ${{ format('{0}/check-k8s-secret-exist.sh {1} {2}', github.action_path,
+        inputs.db_user, inputs.app_namespace) }}
+      shell: bash
+
+    - name: Restore a MongoDB dump from an archive
+      run: ${{ format('{0}/restore-mongodb-archived-db.sh {1} {2} {3} {4} {5}',
+        github.action_path, inputs.source_db_name, inputs.db_user, inputs.app_namespace,
+        inputs.db_service, inputs.db_namespace) }}
+      shell: bash
