@@ -1,0 +1,55 @@
+style: github
+template: CHANGELOG.tpl.md
+info:
+  title: CHANGELOG
+  repository_url: https://github.com/huma-engineering/helm-charts
+options:
+  commits:
+    sort_by: Type
+    filters:
+      Type:
+        - feat
+        - fix
+        - improvement
+        - docs
+        - ref
+        - test
+        - ci
+
+  commit_groups:
+    group_by: Type
+    sort_by: Custom
+    title_order:
+      - feat
+      - improvement
+      - ref
+      - fix
+      - docs
+      - test
+      - ci
+    title_maps:
+      feat: Feature
+      fix: Bug fix
+      improvement: Improvement
+      docs: docs
+      ref: refactor
+      test: test
+      ci: CI
+
+  header:
+    pattern: "^(.+)\\s*:\\s*(.+)$"
+    pattern_maps:
+      - Type
+      - Subject
+
+  issues: #HCB-
+  notes:
+    keywords:
+      - BREAKING CHANGES
+      - NOTES
+
+  refs:
+    actions:
+      - Closes
+      - Fixes
+      - Resolves
