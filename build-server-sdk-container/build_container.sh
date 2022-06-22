@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 export DOCKER_BUILDKIT=1
 short_sha=$(git rev-parse --short HEAD)
 github_token=$1
