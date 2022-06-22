@@ -10,6 +10,12 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+<a name="v0.2.0"></a>
+## [v0.2.0] - 2022-06-22
+Feature:
+- [HCB-425] action Copy files from GCS to a new S3 bucket
+
+
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2022-06-17
 Feature:
@@ -23,4 +29,5 @@ Improvement:
 - Pre-commit rules and git-chglog configuration
 
 
-[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/huma-engineering/helm-charts/compare/v0.1.0...v0.2.0
