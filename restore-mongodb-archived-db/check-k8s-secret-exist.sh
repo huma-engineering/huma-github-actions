@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 for i in $(seq 1 60)
 do
     [ $i -gt 1 ] && echo "not found secret $1/$2, attempt #$i" && sleep 3
