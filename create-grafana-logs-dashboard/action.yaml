@@ -1,0 +1,43 @@
+name: Create Grafana logs dashboard
+description: Use Grafana HTTP API to create a ppserver logs dashboard
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: 'orange'
+  icon: 'file-text'
+
+inputs:
+  grafana_api_key:
+    description: Grafana API key, editor or admin
+    required: true
+  cluster_name:
+    description: GKE cluster name
+    required: true
+  app_name:
+    description: Application Deployment name
+    required: true
+  app_namespace:
+    description: Application namespace
+    required: true
+outputs:
+  url:
+    description: Dashboard URL
+    value: ${{ steps.dashboard.outputs.url }}
+  uid:
+    description: Dashboard UID
+    value: ${{ steps.dashboard.outputs.uid }}
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Create Grafana logs dashboard
+      id: dashboard
+      env:
+        grafana_api_key: ${{ inputs.grafana_api_key }}
+        cluster_name: ${{ inputs.cluster_name }}
+        app_name: ${{ inputs.app_name }}
+        app_namespace: ${{ inputs.app_namespace }}
+        action_path: ${{ github.action_path }}
+      run: ${{ github.action_path }}/create-grafana-dashboard.sh
+      shell: bash
