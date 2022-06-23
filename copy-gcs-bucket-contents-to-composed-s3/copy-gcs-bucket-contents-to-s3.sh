@@ -11,8 +11,7 @@ do
         gsutil -m -q cp -r -U -c -L cp.log ${path} ${DIR} \
             && s=0 && break || s=$?
     done
-    # exit if gsutil copy is not successful
-    [ $s -gt 0 ] && (exit $s)
+    [ $s -gt 0 ] && echo "gsutil failed to copy GCS path=${path}" && (exit $s)
 
     echo "uploading each item from the folder=${DIR} to the S3 bucket s3://${s3_bucket}"
     aws s3 cp --recursive --only-show-errors ${DIR} s3://${s3_bucket}

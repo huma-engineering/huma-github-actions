@@ -1,5 +1,5 @@
-name: Copy files from GCS to a new S3 bucket
-description: Copy files from GCS to a new S3 bucket
+name: Copy GCS bucket contents to a composed S3 bucket
+description: Copy GCS bucket contents to a composed S3 bucket
 author: Denis Trofimov denis.trofimov@huma.com
 branding:
   color: 'orange'
@@ -97,5 +97,5 @@ runs:
         DIR: gcs
         gcs_bucket: ${{ inputs.gcs_bucket }}
         s3_bucket: ${{ steps.readSecret.outputs.s3_bucket }}
-      run: ${{ github.action_path }}/copy-gcs-bucket-contents-to-s3.sh
+      run: ${{ github.action_path }}/copy-gcs-bucket-contents-to-composed-s3.sh
       shell: bash
