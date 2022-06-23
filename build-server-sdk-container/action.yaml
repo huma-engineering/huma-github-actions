@@ -14,17 +14,25 @@ inputs:
   github_user:
     description: a username of a user
     required: true
+  tag:
+    description: Container image tag
+    required: true
   registry:
     description: Container registry
     required: false
     default: ghcr.io
   repository:
-    description: Container repository
+    description: Container repository path
     required: false
     default: ghcr.io/huma-engineering/py-ppserver
-  tag:
-    description: Container image tag
-    required: true
+  source:
+   default: https://github.com/huma-engineering/py-phoenix-server
+   description: Link to the source of a container
+   required: false
+  dockerfile:
+   default: docker/ppserver/Dockerfile
+   description: Local dockerfile path
+   required: false
 
 runs:
   using: composite
@@ -38,7 +46,14 @@ runs:
         ref: ${{ inputs.github_ref }}
 
     - name: Build and Push to ghcr
-      run: ${{ format('{0}/build_container.sh {1} {2} {3} {4} {5}',
-        github.action_path, inputs.github_token, inputs.github_user, inputs.tag,
-        inputs.repository, inputs.registry) }}
+      env:
+        DOCKER_BUILDKIT: "1"
+        github_token: ${{ inputs.github_token }}
+        github_user: ${{ inputs.github_user }}
+        tag: ${{ inputs.tag }}
+        repository: ${{ inputs.repository }}
+        registry: ${{ inputs.registry }}
+        source: ${{ inputs.source }}
+        dockerfile: ${{ inputs.dockerfile }}
+      run: ${{ github.action_path }}/build_container.sh
       shell: bash

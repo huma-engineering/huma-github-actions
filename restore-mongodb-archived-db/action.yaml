@@ -61,17 +61,25 @@ runs:
       shell: bash
 
     - name: Check that MongoDB pod is running
-      run: ${{ format('{0}/check-k8s-pod-running.sh {1} {2}', github.action_path,
-        inputs.db_service, inputs.db_namespace) }}
+      env:
+        pod: ${{ inputs.db_service }}
+        namespace: ${{ inputs.db_namespace }}
+      run: ${{ github.action_path }}/check-k8s-pod-running.sh
       shell: bash
 
     - name: Check that MongoDBUser's secret exist
-      run: ${{ format('{0}/check-k8s-secret-exist.sh {1} {2}', github.action_path,
-        inputs.db_user, inputs.app_namespace) }}
+      env:
+        secret_name: ${{ inputs.db_user }}
+        namespace: ${{ inputs.app_namespace }}
+      run: ${{ github.action_path }}/check-k8s-secret-exist.sh
       shell: bash
 
     - name: Restore a MongoDB dump from an archive
-      run: ${{ format('{0}/restore-mongodb-archived-db.sh {1} {2} {3} {4} {5}',
-        github.action_path, inputs.source_db_name, inputs.db_user, inputs.app_namespace,
-        inputs.db_service, inputs.db_namespace) }}
+      env:
+        source_db_name: ${{ inputs.source_db_name }}
+        db_user: ${{ inputs.db_user }}
+        app_namespace: ${{ inputs.app_namespace }}
+        db_service: ${{ inputs.db_service }}
+        db_namespace: ${{ inputs.db_namespace }}
+      run: ${{ github.action_path }}/restore-mongodb-archived-db.sh
       shell: bash

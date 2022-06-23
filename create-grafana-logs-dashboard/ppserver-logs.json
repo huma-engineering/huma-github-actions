@@ -1,0 +1,86 @@
+{
+    "dashboard": {
+        "annotations": {
+            "list": [
+                {
+                    "builtIn": 1,
+                    "datasource": {
+                        "type": "grafana",
+                        "uid": "-- Grafana --"
+                    },
+                    "enable": true,
+                    "hide": true,
+                    "iconColor": "rgba(0, 211, 255, 1)",
+                    "name": "Annotations & Alerts",
+                    "target": {
+                        "limit": 100,
+                        "matchAny": false,
+                        "type": "dashboard"
+                    },
+                    "type": "dashboard"
+                }
+            ]
+        },
+        "editable": true,
+        "fiscalYearStartMonth": 0,
+        "graphTooltip": 0,
+        "id": null,
+        "liveNow": true,
+        "panels": [
+            {
+                "datasource": {
+                    "type": "loki",
+                    "uid": "grafanacloud-logs"
+                },
+                "gridPos": {
+                    "h": 26,
+                    "w": 24,
+                    "x": 0,
+                    "y": 0
+                },
+                "id": 0,
+                "options": {
+                    "dedupStrategy": "none",
+                    "enableLogDetails": true,
+                    "prettifyLogMessage": true,
+                    "showCommonLabels": false,
+                    "showLabels": false,
+                    "showTime": true,
+                    "sortOrder": "Descending",
+                    "wrapLogMessage": true
+                },
+                "targets": [
+                    {
+                        "datasource": {
+                            "type": "loki",
+                            "uid": "grafanacloud-logs"
+                        },
+                        "expr": "{cluster_name=\"pr-preview\",container=\"ppserver\",namespace=\"pr-preview-104\"}",
+                        "refId": "A"
+                    }
+                ],
+                "title": "ppserver-logs",
+                "type": "logs"
+            }
+        ],
+        "refresh": "30s",
+        "schemaVersion": 36,
+        "style": "dark",
+        "tags": [
+            "logs",
+            "ppserver",
+            "pr-preview"
+        ],
+        "time": {
+            "from": "now-1h",
+            "to": "now"
+        },
+        "timezone": "browser",
+        "title": "ppserver-logs-111",
+        "uid": null,
+        "version": 0
+    },
+    "folderId": 23,
+    "message": "Create ppserver-111-logs dashboard",
+    "overwrite": true
+}
