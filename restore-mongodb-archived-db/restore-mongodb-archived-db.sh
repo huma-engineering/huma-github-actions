@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
 # https://unix.stackexchange.com/questions/82598/how-do-i-write-a-retry-logic-in-script-to-keep-retrying-to-run-it-upto-5-times
-source_db_name=$1
-db_user=$2
-app_namespace=$3
-db_service=$4
-db_namespace=$5
-secret=$db_user
+secret=${db_user}
 dump_name=dump_hs_sandbox_${source_db_name}.gz
 
-PASSWORD=$(kubectl get -n $app_namespace secrets/$secret \
+PASSWORD=$(kubectl get -n $app_namespace secrets/${secret} \
     --template={{.data.password}} | base64 --decode)
-USER=$(kubectl get -n $app_namespace secrets/$secret \
+USER=$(kubectl get -n $app_namespace secrets/${secret} \
     --template={{.data.user}} | base64 --decode)
-URL=$(kubectl get -n $app_namespace secrets/$secret \
+URL=$(kubectl get -n $app_namespace secrets/${secret} \
     --template={{.data.connectionString}} | base64 --decode)
 DB=$(echo $URL | cut -d/ -f4- | cut -d? -f-1)
 kubectl port-forward -n ${db_namespace} \
