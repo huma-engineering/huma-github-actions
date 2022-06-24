@@ -30,11 +30,15 @@ runs:
   using: composite
   steps:
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ inputs.aws_access_key_id }}
-        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
-        aws-region: ${{ inputs.aws_region }}
+      run: |-
+        mkdir -p ~/.aws
+        cat > ~/.aws/credentials << EOF
+        [default]
+        aws_access_key_id=${{ inputs.aws_access_key_id }}
+        aws_secret_access_key=${{ inputs.aws_secret_access_key }}
+        region=${{ inputs.aws_region }}
+        EOF
+      shell: bash
 
     - name: Setup gcloud CLI bucket
       uses: google-github-actions/setup-gcloud@v0
@@ -48,4 +52,8 @@ runs:
         gcs_bucket: ${{ inputs.gcs_bucket }}
         s3_bucket: ${{ inputs.s3_bucket }}
       run: ${{ github.action_path }}/copy-gcs-bucket-contents-to-s3.sh
+      shell: bash
+
+    - name: Post Configure AWS Credentials clean up
+      run: rm ~/.aws/credentials
       shell: bash
