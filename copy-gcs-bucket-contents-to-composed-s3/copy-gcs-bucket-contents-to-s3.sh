@@ -18,5 +18,3 @@ do
     echo "clean up all files from the folder=${DIR} to preserve disk space"
     rm -rf ${DIR}/*
 done
-echo "Post Configure AWS Credentials clean up"
-rm ~/.aws/credentials

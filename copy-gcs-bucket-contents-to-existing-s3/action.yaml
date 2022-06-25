@@ -55,5 +55,6 @@ runs:
       shell: bash
 
     - name: Post Configure AWS Credentials clean up
+      if: always()    
       run: rm ~/.aws/credentials
       shell: bash

@@ -99,3 +99,8 @@ runs:
         s3_bucket: ${{ steps.readSecret.outputs.s3_bucket }}
       run: ${{ github.action_path }}/copy-gcs-bucket-contents-to-s3.sh
       shell: bash
+
+    - name: Post Configure AWS Credentials clean up
+      if: always()    
+      run: rm ~/.aws/credentials
+      shell: bash
