@@ -1,0 +1,104 @@
+name: Sync an existing S3 bucket to a composed bucket
+description: Sync an existing S3 bucket to a composed bucket
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: "orange"
+  icon: "hard-drive"
+inputs:
+  project_id:
+    description: GCP project ID
+    required: true
+  gcp_credentials:
+    description: GCP Service Account Key
+    required: true
+  source_bucket:
+    description: Source S3 bucket name
+    required: true
+  aws_access_key_id:
+    description: AWS access key ID
+    required: true
+  aws_secret_access_key:
+    description: AWS access key secret
+    required: true
+  aws_region:
+    description: AWS region
+    required: true
+  cluster_name:
+    description: GKE cluster name
+    required: true
+  location:
+    description: GKE zone
+    required: true
+  secret_name:
+    description: name of bucket secret
+    required: true
+  app_namespace:
+    description: Namespace
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Setup gcloud CLI bucket
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ inputs.gcp_credentials }}
+        project_id: ${{ inputs.project_id }}
+
+    - name: Get the GKE credentials
+      uses: google-github-actions/get-gke-credentials@v0
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        location: ${{ inputs.location }}
+        credentials: ${{ inputs.gcp_credentials }}
+
+    - name: Check bucket's secret exist
+      env:
+        secret_name: ${{ inputs.secret_name }}
+        namespace: ${{ inputs.app_namespace }}
+      run: ${{ github.action_path }}/check-k8s-secret-exist.sh
+      shell: bash
+
+    - name: Read AWS S3 bucket connection secret from K8s cluster
+      id: readSecret
+      run: |-
+        id=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.aws_access_key_id}} | base64 --decode)
+        secret=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.aws_secret_access_key}} | base64 --decode)
+        s3_bucket=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.bucket_name}} | base64 --decode)
+        region=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.region}} | base64 --decode)
+        echo "::add-mask::$id"
+        echo "::add-mask::$secret"
+        echo "::set-output name=id::$id"
+        echo "::set-output name=secret::$secret"
+        echo "::set-output name=s3_bucket::$s3_bucket"
+        echo "::set-output name=region::$region"
+      shell: bash
+
+    - name: Configure AWS Credentials
+      run: |-
+        mkdir -p ~/.aws
+        cat > ~/.aws/credentials << EOF
+        [default]
+        aws_access_key_id=${{ inputs.aws_access_key_id }}
+        aws_secret_access_key=${{ inputs.aws_secret_access_key }}
+        region=${{ inputs.aws_region }}
+        EOF
+      shell: bash
+
+    - name: Sync an existing S3 bucket to a composed bucket
+      env:
+        target_bucket: ${{ steps.readSecret.outputs.s3_bucket }}
+        source_bucket: ${{ inputs.source_bucket }}
+      run: |
+        aws configure set default.s3.max_concurrent_requests 50
+        echo "uploading each item from the bucket s3://${source_bucket} to the bucket s3://${target_bucket}"
+        aws s3 sync --delete --only-show-errors s3://${source_bucket} s3://${target_bucket}
+      shell: bash
+
+    - name: Post Configure AWS Credentials clean up
+      if: always()
+      run: rm ~/.aws/credentials
+      shell: bash
