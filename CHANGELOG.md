@@ -10,8 +10,14 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+<a name="v0.5.0"></a>
+## [v0.5.0] - 2022-06-27
+Feature:
+- [HCB-432] Suppress uninstall action error and log it in a comment on PR
+
+
 <a name="v0.4.0"></a>
-## [v0.4.0] - 2022-06-25
+## [v0.4.0] - 2022-06-27
 Feature:
 - [HCB-429] Clone an existing S3 bucket to a composed bucket
 - [HCB-429] Copy GCS bucket contents to an existing S3 bucket action
@@ -57,7 +63,8 @@ Improvement:
 - Pre-commit rules and git-chglog configuration
 
 
-[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/huma-engineering/helm-charts/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/huma-engineering/helm-charts/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/huma-engineering/helm-charts/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/huma-engineering/helm-charts/compare/v0.1.0...v0.2.0
