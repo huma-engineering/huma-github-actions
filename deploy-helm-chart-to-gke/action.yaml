@@ -52,7 +52,7 @@ inputs:
     required: true
 outputs:
   result:
-    description: helm's exit code
+    description: action's exit code
     value: ${{ steps.helm.outputs.result }}
 runs:
   using: composite
