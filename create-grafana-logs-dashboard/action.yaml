@@ -25,6 +25,9 @@ outputs:
   uid:
     description: Dashboard UID
     value: ${{ steps.dashboard.outputs.uid }}
+  result:
+    description: script's exit code
+    value: ${{ steps.dashboard.outputs.result }}    
 runs:
   using: composite
   steps:
@@ -39,5 +42,7 @@ runs:
         app_name: ${{ inputs.app_name }}
         app_namespace: ${{ inputs.app_namespace }}
         action_path: ${{ github.action_path }}
-      run: ${{ github.action_path }}/create-grafana-dashboard.sh
+      run: |
+        ${{ github.action_path }}/create-grafana-dashboard.sh && result=0 || result=$?
+        echo "::set-output name=result::$result"
       shell: bash
