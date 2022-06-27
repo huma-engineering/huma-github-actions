@@ -1,0 +1,60 @@
+name: Copy GCS bucket contents to an existing S3 bucket
+description: Copy GCS bucket contents to an existing S3 bucket
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: 'orange'
+  icon: 'hard-drive'
+inputs:
+  project_id:
+    description: GCP project ID
+    required: true
+  gcs_bucket:
+    description: GCS Bucket name
+    required: true
+  gcp_credentials:
+    description: GCP Service Account Key
+    required: true
+  s3_bucket:
+    description: S3 bucket name
+    required: true
+  aws_access_key_id:
+    description: AWS access key ID
+    required: true
+  aws_secret_access_key:
+    description: AWS access key secret
+    required: true
+  aws_region:
+    description: AWS region
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS Credentials
+      run: |-
+        mkdir -p ~/.aws
+        cat > ~/.aws/credentials << EOF
+        [default]
+        aws_access_key_id=${{ inputs.aws_access_key_id }}
+        aws_secret_access_key=${{ inputs.aws_secret_access_key }}
+        region=${{ inputs.aws_region }}
+        EOF
+      shell: bash
+
+    - name: Setup gcloud CLI bucket
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ inputs.gcp_credentials }}
+        project_id: ${{ inputs.project_id }}
+
+    - name: copy each item from GCS bucket to S3
+      env:
+        DIR: gcs
+        gcs_bucket: ${{ inputs.gcs_bucket }}
+        s3_bucket: ${{ inputs.s3_bucket }}
+      run: ${{ github.action_path }}/copy-gcs-bucket-contents-to-s3.sh
+      shell: bash
+
+    - name: Post Configure AWS Credentials clean up
+      if: always()    
+      run: rm ~/.aws/credentials
+      shell: bash

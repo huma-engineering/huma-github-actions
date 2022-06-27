@@ -1,0 +1,106 @@
+name: Copy GCS bucket contents to a composed S3 bucket
+description: Copy GCS bucket contents to a composed S3 bucket
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: 'orange'
+  icon: 'hard-drive'
+inputs:
+  project_id_workload:
+    description: GCP project ID
+    required: true
+  cluster_name:
+    description: GKE cluster name
+    required: true
+  location:
+    description: GKE zone
+    required: true
+  secret_name:
+    description: name of bucket secret
+    required: true
+  app_namespace:
+    description: Namespace
+    required: true
+  project_id_bucket:
+    description: GCP project ID
+    required: true
+  gcs_bucket:
+    description: Bucket name
+    required: true
+  gcp_credentials_workload:
+    description: GCP Service Account Key to deploy workload
+    required: true
+  gcp_credentials_bucket:
+    description: GCP Service Account Key for source bucket
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup gcloud CLI workload
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ inputs.gcp_credentials_workload }}
+        project_id: ${{ inputs.project_id_workload }}
+
+    - name: Get GKE cluster credentials
+      uses: google-github-actions/get-gke-credentials@v0
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        location: ${{ inputs.location }}
+        credentials: ${{ inputs.gcp_credentials_workload }}
+
+    - name: Check bucket's secret exist
+      env:
+        secret_name: ${{ inputs.secret_name }}
+        namespace: ${{ inputs.app_namespace }}
+      run: ${{ github.action_path }}/check-k8s-secret-exist.sh
+      shell: bash
+
+    - name: Read AWS S3 bucket connection secret from K8s cluster
+      id: readSecret
+      run: |-
+        id=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.aws_access_key_id}} | base64 --decode)
+        secret=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.aws_secret_access_key}} | base64 --decode)
+        s3_bucket=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.bucket_name}} | base64 --decode)
+        region=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
+          --template={{.data.region}} | base64 --decode)
+        echo "::add-mask::$id"
+        echo "::add-mask::$secret"
+        echo "::set-output name=id::$id"
+        echo "::set-output name=secret::$secret"
+        echo "::set-output name=s3_bucket::$s3_bucket"
+        echo "::set-output name=region::$region"
+      shell: bash
+
+    - name: Configure AWS Credentials
+      run: |-
+        mkdir -p ~/.aws
+        cat > ~/.aws/credentials << EOF
+        [default]
+        aws_access_key_id=${{ steps.readSecret.outputs.id }}
+        aws_secret_access_key=${{ steps.readSecret.outputs.secret }}
+        region=${{ steps.readSecret.outputs.region }}
+        EOF
+      shell: bash
+
+    - name: Setup gcloud CLI bucket
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ inputs.gcp_credentials_bucket }}
+        project_id: ${{ inputs.project_id_bucket }}
+
+    - name: copy each item from GCS bucket to S3
+      env:
+        DIR: gcs
+        gcs_bucket: ${{ inputs.gcs_bucket }}
+        s3_bucket: ${{ steps.readSecret.outputs.s3_bucket }}
+      run: ${{ github.action_path }}/copy-gcs-bucket-contents-to-s3.sh
+      shell: bash
+
+    - name: Post Configure AWS Credentials clean up
+      if: always()    
+      run: rm ~/.aws/credentials
+      shell: bash

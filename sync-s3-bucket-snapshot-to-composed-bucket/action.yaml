@@ -1,12 +1,27 @@
-name: Copy files from GCS to a new S3 bucket
-description: Copy files from GCS to a new S3 bucket
+name: Sync an existing S3 bucket to a composed bucket
+description: Sync an existing S3 bucket to a composed bucket
 author: Denis Trofimov denis.trofimov@huma.com
 branding:
-  color: 'orange'
-  icon: 'hard-drive'
+  color: "orange"
+  icon: "hard-drive"
 inputs:
-  project_id_workload:
+  project_id:
     description: GCP project ID
+    required: true
+  gcp_credentials:
+    description: GCP Service Account Key
+    required: true
+  source_bucket:
+    description: Source S3 bucket name
+    required: true
+  aws_access_key_id:
+    description: AWS access key ID
+    required: true
+  aws_secret_access_key:
+    description: AWS access key secret
+    required: true
+  aws_region:
+    description: AWS region
     required: true
   cluster_name:
     description: GKE cluster name
@@ -20,34 +35,21 @@ inputs:
   app_namespace:
     description: Namespace
     required: true
-  project_id_bucket:
-    description: GCP project ID
-    required: true
-  gcs_bucket:
-    description: Bucket name
-    required: true
-  gcp_credentials_workload:
-    description: GCP Service Account Key to deploy workload
-    required: true
-  gcp_credentials_bucket:
-    description: GCP Service Account Key for source bucket
-    required: true
-
 runs:
   using: composite
   steps:
-    - name: Setup gcloud CLI workload
+    - name: Setup gcloud CLI bucket
       uses: google-github-actions/setup-gcloud@v0
       with:
-        service_account_key: ${{ inputs.gcp_credentials_workload }}
-        project_id: ${{ inputs.project_id_workload }}
+        service_account_key: ${{ inputs.gcp_credentials }}
+        project_id: ${{ inputs.project_id }}
 
-    - name: Get GKE cluster credentials
+    - name: Get the GKE credentials
       uses: google-github-actions/get-gke-credentials@v0
       with:
         cluster_name: ${{ inputs.cluster_name }}
         location: ${{ inputs.location }}
-        credentials: ${{ inputs.gcp_credentials_workload }}
+        credentials: ${{ inputs.gcp_credentials }}
 
     - name: Check bucket's secret exist
       env:
@@ -80,22 +82,23 @@ runs:
         mkdir -p ~/.aws
         cat > ~/.aws/credentials << EOF
         [default]
-        aws_access_key_id=${{ steps.readSecret.outputs.id }}
-        aws_secret_access_key=${{ steps.readSecret.outputs.secret }}
-        region=${{ steps.readSecret.outputs.region }}
+        aws_access_key_id=${{ inputs.aws_access_key_id }}
+        aws_secret_access_key=${{ inputs.aws_secret_access_key }}
+        region=${{ inputs.aws_region }}
         EOF
       shell: bash
 
-    - name: Setup gcloud CLI bucket
-      uses: google-github-actions/setup-gcloud@v0
-      with:
-        service_account_key: ${{ inputs.gcp_credentials_bucket }}
-        project_id: ${{ inputs.project_id_bucket }}
-
-    - name: copy each item from GCS bucket to S3
+    - name: Sync an existing S3 bucket to a composed bucket
       env:
-        DIR: gcs
-        gcs_bucket: ${{ inputs.gcs_bucket }}
-        s3_bucket: ${{ steps.readSecret.outputs.s3_bucket }}
-      run: ${{ github.action_path }}/copy-gcs-bucket-contents-to-s3.sh
+        target_bucket: ${{ steps.readSecret.outputs.s3_bucket }}
+        source_bucket: ${{ inputs.source_bucket }}
+      run: |
+        aws configure set default.s3.max_concurrent_requests 50
+        echo "uploading each item from the bucket s3://${source_bucket} to the bucket s3://${target_bucket}"
+        aws s3 sync --delete --only-show-errors s3://${source_bucket} s3://${target_bucket}
+      shell: bash
+
+    - name: Post Configure AWS Credentials clean up
+      if: always()
+      run: rm ~/.aws/credentials
       shell: bash
