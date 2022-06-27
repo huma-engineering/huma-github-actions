@@ -10,6 +10,23 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+<a name="v0.4.0"></a>
+## [v0.4.0] - 2022-06-25
+Feature:
+- [HCB-429] Clone an existing S3 bucket to a composed bucket
+- [HCB-429] Copy GCS bucket contents to an existing S3 bucket action
+
+Improvement:
+- Always run clean up [skip ci]
+
+refactor:
+- New name copy-gcs-bucket-contents-to-composed-s3
+
+Bug fix:
+- Build container miss docker login
+- No such file /copy-gcs-bucket-contents-to-composed-s3/copy-gcs-bucket-contents-to-composed-s3.sh
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0] - 2022-06-23
 Feature:
@@ -40,6 +57,7 @@ Improvement:
 - Pre-commit rules and git-chglog configuration
 
 
-[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.4.0...HEAD
+[v0.4.0]: https://github.com/huma-engineering/helm-charts/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/huma-engineering/helm-charts/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/huma-engineering/helm-charts/compare/v0.1.0...v0.2.0
