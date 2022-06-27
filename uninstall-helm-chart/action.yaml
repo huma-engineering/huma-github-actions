@@ -28,7 +28,10 @@ inputs:
     description: Delete namespace
     required: false
     default: 'false'
-
+outputs:
+  result:
+    description: helm's exit code
+    value: ${{ steps.helm.outputs.result }}
 runs:
   using: composite
   steps:
@@ -46,10 +49,13 @@ runs:
         credentials: ${{ inputs.gcp_credentials }}
 
     - name: Uninstall a Helm chart
-      run: helm uninstall ${{ inputs.app_name }} -n ${{ inputs.app_namespace }}
+      id: helm
+      run: |
+        helm uninstall ${{ inputs.app_name }} -n ${{ inputs.app_namespace }} && result=0 || result=$?
+        echo "::set-output name=result::$result"
       shell: bash
 
     - name: Delete namespace
       if: inputs.delete_namespace != 'false'
-      run: kubectl delete namespace ${{ inputs.app_namespace }} --wait=false
+      run: kubectl delete namespace ${{ inputs.app_namespace }} --wait=false || exit 0
       shell: bash
