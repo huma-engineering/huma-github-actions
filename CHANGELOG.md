@@ -10,6 +10,18 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+<a name="v0.6.0"></a>
+## [v0.6.0] - 2022-06-28
+Feature:
+- [HCB-433] suppress CI errors for sync DB action
+- [HCB-433] suppress CI errors for restore DB action
+- [HCB-433] suppress CI errors for grafana action
+- [HCB-433] suppress CI errors for deploy action
+
+refactor:
+- Rename result to error
+
+
 <a name="v0.5.0"></a>
 ## [v0.5.0] - 2022-06-27
 Feature:
@@ -63,7 +75,8 @@ Improvement:
 - Pre-commit rules and git-chglog configuration
 
 
-[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.6.0...HEAD
+[v0.6.0]: https://github.com/huma-engineering/helm-charts/compare/v0.5.0...v0.6.0
 [v0.5.0]: https://github.com/huma-engineering/helm-charts/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/huma-engineering/helm-charts/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/huma-engineering/helm-charts/compare/v0.2.0...v0.3.0
