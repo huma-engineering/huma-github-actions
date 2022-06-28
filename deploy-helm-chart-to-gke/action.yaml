@@ -51,9 +51,9 @@ inputs:
     description: A Github token PAT
     required: true
 outputs:
-  result:
+  error:
     description: action's exit code
-    value: ${{ steps.helm.outputs.result }}
+    value: ${{ steps.helm.outputs.error }}
 runs:
   using: composite
   steps:
@@ -86,6 +86,6 @@ runs:
           --set fullnameOverride=${{ inputs.app_name }} \
           --set mongodb.clusterRef.name=${{ inputs.db_service }} \
           --set mongodb.clusterRef.namespace=${{ inputs.db_namespace }} \
-          --set mongodb.provider=${{ inputs.db_provider }} && result=0 || result=$?
-        echo "::set-output name=result::$result"
+          --set mongodb.provider=${{ inputs.db_provider }} && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash

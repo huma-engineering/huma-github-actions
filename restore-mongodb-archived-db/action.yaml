@@ -37,9 +37,9 @@ inputs:
     description: GCP Service Account Key
     required: true
 outputs:
-  result:
+  error:
     description: action's exit code
-    value: ${{ steps.result.outputs.result }}
+    value: ${{ steps.result.outputs.error }}
 
 runs:
   using: composite
@@ -63,36 +63,36 @@ runs:
       env:
         dump_name: dump_hs_sandbox_${{ inputs.source_db_name }}.gz
       run: |
-        gsutil cp gs://${{ inputs.bucket_name }}/${{ env.dump_name }} . && result=0 || result=$?
-        echo "::set-output name=result::$result"
+        gsutil cp gs://${{ inputs.bucket_name }}/${{ env.dump_name }} . && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: Check that MongoDB pod is running
       id: pod
-      if: steps.download.output.result == 0
+      if: steps.download.output.error == 0
       env:
         pod: ${{ inputs.db_service }}
         namespace: ${{ inputs.db_namespace }}
       run: |
-        ${{ github.action_path }}/check-k8s-pod-running.sh && result=0 || result=$?
-        echo "::set-output name=result::$result"
+        ${{ github.action_path }}/check-k8s-pod-running.sh && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: Check that MongoDBUser's secret exist
       id: secret
-      if: steps.download.output.result == 0 && steps.pod.output.result == 0
+      if: steps.download.output.error == 0 && steps.pod.output.error == 0
       env:
         secret_name: ${{ inputs.db_user }}
         namespace: ${{ inputs.app_namespace }}
       run: |
-        ${{ github.action_path }}/check-k8s-secret-exist.sh && result=0 || result=$?
-        echo "::set-output name=result::$result"
+        ${{ github.action_path }}/check-k8s-secret-exist.sh && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: Restore a MongoDB dump from an archive
       id: restore
-      if: ${{ steps.download.output.result == 0 && steps.pod.output.result == 0 
-        && steps.secret.output.result == 0 }}
+      if: ${{ steps.download.output.error == 0 && steps.pod.output.error == 0 
+        && steps.secret.output.error == 0 }}
       env:
         source_db_name: ${{ inputs.source_db_name }}
         db_user: ${{ inputs.db_user }}
@@ -100,17 +100,17 @@ runs:
         db_service: ${{ inputs.db_service }}
         db_namespace: ${{ inputs.db_namespace }}
       run: |
-        ${{ github.action_path }}/restore-mongodb-archived-db.sh && result=0 || result=$?
-        echo "::set-output name=result::$result"
+        ${{ github.action_path }}/restore-mongodb-archived-db.sh && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: result
       id: result
       run: |
-        for r in ${{ steps.download.output.result }} ${{ steps.pod.output.result }} \
-          ${{ steps.secret.output.result }} ${{ steps.restore.output.result }}
+        for r in ${{ steps.download.output.error }} ${{ steps.pod.output.error }} \
+          ${{ steps.secret.output.error }} ${{ steps.restore.output.error }}
         do 
-          result=$r && [ $result -gt 0 ] && break
+          error=$r && [ $error -gt 0 ] && break
         done
-        echo "::set-output name=result::$result"
+        echo "::set-output name=error::$error"
       shell: bash
