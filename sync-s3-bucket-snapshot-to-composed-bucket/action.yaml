@@ -35,6 +35,10 @@ inputs:
   app_namespace:
     description: Namespace
     required: true
+outputs:
+  error:
+    description: action's exit code
+    value: ${{ steps.result.outputs.error }}
 runs:
   using: composite
   steps:
@@ -52,32 +56,39 @@ runs:
         credentials: ${{ inputs.gcp_credentials }}
 
     - name: Check bucket's secret exist
+      id: secret
       env:
         secret_name: ${{ inputs.secret_name }}
         namespace: ${{ inputs.app_namespace }}
-      run: ${{ github.action_path }}/check-k8s-secret-exist.sh
+      run: |
+        ${{ github.action_path }}/check-k8s-secret-exist.sh && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: Read AWS S3 bucket connection secret from K8s cluster
       id: readSecret
+      if: steps.secret.output.error == 0
       run: |-
+        error=0
         id=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
-          --template={{.data.aws_access_key_id}} | base64 --decode)
+          --template={{.data.aws_access_key_id}} | base64 --decode) || error=$?
         secret=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
-          --template={{.data.aws_secret_access_key}} | base64 --decode)
+          --template={{.data.aws_secret_access_key}} | base64 --decode) || error=$?
         s3_bucket=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
-          --template={{.data.bucket_name}} | base64 --decode)
+          --template={{.data.bucket_name}} | base64 --decode) || error=$?
         region=$(kubectl get -n ${{ inputs.app_namespace }} secrets/${{ inputs.secret_name }} \
-          --template={{.data.region}} | base64 --decode)
+          --template={{.data.region}} | base64 --decode) || error=$?
         echo "::add-mask::$id"
         echo "::add-mask::$secret"
         echo "::set-output name=id::$id"
         echo "::set-output name=secret::$secret"
         echo "::set-output name=s3_bucket::$s3_bucket"
         echo "::set-output name=region::$region"
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: Configure AWS Credentials
+      if: steps.secret.output.error == 0 && steps.readSecret.output.error == 0
       run: |-
         mkdir -p ~/.aws
         cat > ~/.aws/credentials << EOF
@@ -89,16 +100,30 @@ runs:
       shell: bash
 
     - name: Sync an existing S3 bucket to a composed bucket
+      id: sync
+      if: steps.secret.output.error == 0 && steps.readSecret.output.error == 0
       env:
         target_bucket: ${{ steps.readSecret.outputs.s3_bucket }}
         source_bucket: ${{ inputs.source_bucket }}
       run: |
-        aws configure set default.s3.max_concurrent_requests 50
+        aws configure set default.s3.max_concurrent_requests 50 && error=0 || error=$?
         echo "uploading each item from the bucket s3://${source_bucket} to the bucket s3://${target_bucket}"
-        aws s3 sync --delete --only-show-errors s3://${source_bucket} s3://${target_bucket}
+        aws s3 sync --delete --only-show-errors s3://${source_bucket} s3://${target_bucket} && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: Post Configure AWS Credentials clean up
-      if: always()
+      if: steps.secret.output.error == 0 && steps.readSecret.output.error == ""
       run: rm ~/.aws/credentials
+      shell: bash
+
+    - name: result
+      id: result
+      run: |
+        for r in ${{ steps.secret.output.error }} ${{ steps.readSecret.output.error }} \
+          ${{ steps.sync.output.error }}
+        do 
+          error=$r && [ $error != 0 ] && break
+        done
+        echo "::set-output name=error::$error"
       shell: bash

@@ -110,7 +110,7 @@ runs:
         for r in ${{ steps.download.output.error }} ${{ steps.pod.output.error }} \
           ${{ steps.secret.output.error }} ${{ steps.restore.output.error }}
         do 
-          error=$r && [ $error -gt 0 ] && break
+          error=$r && [ $error != 0 ] && break
         done
         echo "::set-output name=error::$error"
       shell: bash
