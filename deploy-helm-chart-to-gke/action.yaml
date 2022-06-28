@@ -50,7 +50,10 @@ inputs:
   github_token:
     description: A Github token PAT
     required: true
-
+outputs:
+  error:
+    description: action's exit code
+    value: ${{ steps.helm.outputs.error }}
 runs:
   using: composite
   steps:
@@ -69,6 +72,7 @@ runs:
 
     # ref: https://helm.sh/docs/topics/registries/
     - name: Deploy a Helm chart
+      id: helm
       env:
         HELM_EXPERIMENTAL_OCI: "1"
       run: |-
@@ -82,5 +86,6 @@ runs:
           --set fullnameOverride=${{ inputs.app_name }} \
           --set mongodb.clusterRef.name=${{ inputs.db_service }} \
           --set mongodb.clusterRef.namespace=${{ inputs.db_namespace }} \
-          --set mongodb.provider=${{ inputs.db_provider }}
+          --set mongodb.provider=${{ inputs.db_provider }} && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash

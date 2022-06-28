@@ -3,7 +3,7 @@ MAKEFLAGS += --no-print-directory
 endif
 
 # Update this value when you upgrade the version of your project.
-VERSION ?= 0.5.0
+VERSION ?= 0.6.0
 
 .PHONY: help all
 help:

@@ -29,9 +29,9 @@ inputs:
     required: false
     default: 'false'
 outputs:
-  result:
-    description: helm's exit code
-    value: ${{ steps.helm.outputs.result }}
+  error:
+    description: action's exit code
+    value: ${{ steps.helm.outputs.error }}
 runs:
   using: composite
   steps:
@@ -51,8 +51,8 @@ runs:
     - name: Uninstall a Helm chart
       id: helm
       run: |
-        helm uninstall ${{ inputs.app_name }} -n ${{ inputs.app_namespace }} && result=0 || result=$?
-        echo "::set-output name=result::$result"
+        helm uninstall ${{ inputs.app_name }} -n ${{ inputs.app_namespace }} && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
 
     - name: Delete namespace
