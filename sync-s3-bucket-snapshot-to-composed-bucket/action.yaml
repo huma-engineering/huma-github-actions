@@ -113,7 +113,7 @@ runs:
       shell: bash
 
     - name: Post Configure AWS Credentials clean up
-      if: steps.secret.output.error == 0 && steps.readSecret.output.error == ""
+      if: steps.secret.output.error == 0 && steps.readSecret.output.error == 0
       run: rm ~/.aws/credentials
       shell: bash
 
