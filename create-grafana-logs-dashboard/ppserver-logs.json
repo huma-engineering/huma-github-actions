@@ -55,7 +55,7 @@
                             "type": "loki",
                             "uid": "grafanacloud-logs"
                         },
-                        "expr": "{cluster_name=\"pr-preview\",container=\"ppserver\",namespace=\"pr-preview-104\"}",
+                        "expr": "{cluster_name=\"pr-preview\",container=\"ppserver\",namespace=\"pr-preview-111\"}",
                         "refId": "A"
                     }
                 ],
@@ -68,7 +68,6 @@
         "style": "dark",
         "tags": [
             "logs",
-            "ppserver",
             "pr-preview"
         ],
         "time": {
@@ -76,7 +75,7 @@
             "to": "now"
         },
         "timezone": "browser",
-        "title": "ppserver-logs-111",
+        "title": "ppserver-111-logs",
         "uid": null,
         "version": 0
     },

@@ -1,0 +1,33 @@
+name: Remove Grafana dashboard by name
+description: Use Grafana HTTP API to remove a ppserver logs dashboard
+author: Denis Trofimov denis.trofimov@huma.com
+branding:
+  color: 'orange'
+  icon: 'file-text'
+
+inputs:
+  grafana_api_key:
+    description: Grafana API key, editor or admin
+    required: true
+  name:
+    description: dashboard name
+    required: true
+outputs:
+  error:
+    description: action's exit code
+    value: ${{ steps.dashboard.outputs.error }}
+  response:
+    description: action's exit code
+    value: ${{ steps.dashboard.outputs.response }}
+runs:
+  using: composite
+  steps:
+    - name: remove Grafana logs dashboard
+      id: dashboard
+      env:
+        grafana_api_key: ${{ inputs.grafana_api_key }}
+        name: ${{ inputs.name }}
+      run: |
+        ${{ github.action_path }}/remove-grafana-dashboard.sh && error=0 || error=$?
+        echo "::set-output name=error::$error"
+      shell: bash
