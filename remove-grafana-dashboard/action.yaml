@@ -13,8 +13,8 @@ inputs:
     default: https://humasandbox.grafana.net
     description: Grafana host
     required: false
-  name:
-    description: dashboard name
+  title:
+    description: dashboard title
     required: true
 outputs:
   error:
@@ -31,7 +31,7 @@ runs:
       env:
         grafana_api_key: ${{ inputs.grafana_api_key }}
         grafana_host: ${{ inputs.grafana_host }}
-        name: ${{ inputs.name }}
+        title: ${{ inputs.title }}
       run: |
         ${{ github.action_path }}/remove-grafana-dashboard.sh && error=0 || error=$?
         echo "::set-output name=error::$error"
