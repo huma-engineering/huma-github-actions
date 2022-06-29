@@ -10,9 +10,8 @@ inputs:
     description: Grafana API key, editor or admin
     required: true
   grafana_host: 
-    default: https://humasandbox.grafana.net
     description: Grafana host
-    required: false
+    required: true
   title:
     description: dashboard title
     required: true
