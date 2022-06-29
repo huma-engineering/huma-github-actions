@@ -9,6 +9,10 @@ inputs:
   grafana_api_key:
     description: Grafana API key, editor or admin
     required: true
+  grafana_host: 
+    default: https://humasandbox.grafana.net
+    description: Grafana host
+    required: false
   name:
     description: dashboard name
     required: true
@@ -26,6 +30,7 @@ runs:
       id: dashboard
       env:
         grafana_api_key: ${{ inputs.grafana_api_key }}
+        grafana_host: ${{ inputs.grafana_host }}
         name: ${{ inputs.name }}
       run: |
         ${{ github.action_path }}/remove-grafana-dashboard.sh && error=0 || error=$?

@@ -6,9 +6,9 @@ jq --arg app_name "$app_name" \
     | .dashboard.tags += [$app_name]
     | .message = "Create " + $app_name + "-logs dashboard"' ${action_path}/ppserver-logs.json > ${app_name}.json
 
-response=$(curl -XPOST -H "Authorization: Bearer ${grafana_api_key}" \
+response=$(curl -sS -XPOST -H "Authorization: Bearer ${grafana_api_key}" \
   -H "Content-Type: application/json" \
-  -L https://humasandbox.grafana.net/api/dashboards/db \
+  -L ${grafana_host}/api/dashboards/db \
   -d @./${app_name}.json)
 
 echo "::set-output name=url::$(echo ${response} | jq -r '.url')"
