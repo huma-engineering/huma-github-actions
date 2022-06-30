@@ -33,7 +33,10 @@ inputs:
    default: docker/ppserver/Dockerfile
    description: Local dockerfile path
    required: false
-
+outputs:
+  error:
+    description: action's exit code
+    value: ${{ steps.dashboard.outputs.error }}    
 runs:
   using: composite
   steps:
@@ -55,5 +58,7 @@ runs:
         registry: ${{ inputs.registry }}
         source: ${{ inputs.source }}
         dockerfile: ${{ inputs.dockerfile }}
-      run: ${{ github.action_path }}/build_container.sh
+      run: |
+        ${{ github.action_path }}/build_container.sh && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
