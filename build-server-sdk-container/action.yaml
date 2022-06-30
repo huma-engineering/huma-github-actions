@@ -33,7 +33,10 @@ inputs:
    default: docker/ppserver/Dockerfile
    description: Local dockerfile path
    required: false
-
+outputs:
+  error:
+    description: action's exit code
+    value: ${{ steps.build.outputs.error }}    
 runs:
   using: composite
   steps:
@@ -46,6 +49,7 @@ runs:
         ref: ${{ inputs.github_ref }}
 
     - name: Build and Push to ghcr
+      id: build
       env:
         DOCKER_BUILDKIT: "1"
         github_token: ${{ inputs.github_token }}
@@ -55,5 +59,7 @@ runs:
         registry: ${{ inputs.registry }}
         source: ${{ inputs.source }}
         dockerfile: ${{ inputs.dockerfile }}
-      run: ${{ github.action_path }}/build_container.sh
+      run: |
+        ${{ github.action_path }}/build_container.sh && error=0 || error=$?
+        echo "::set-output name=error::$error"
       shell: bash
