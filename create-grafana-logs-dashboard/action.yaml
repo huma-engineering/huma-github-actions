@@ -9,6 +9,9 @@ inputs:
   grafana_api_key:
     description: Grafana API key, editor or admin
     required: true
+  grafana_host: 
+    description: Grafana host
+    required: true    
   cluster_name:
     description: GKE cluster name
     required: true
@@ -38,6 +41,7 @@ runs:
       id: dashboard
       env:
         grafana_api_key: ${{ inputs.grafana_api_key }}
+        grafana_host: ${{ inputs.grafana_host }}
         cluster_name: ${{ inputs.cluster_name }}
         app_name: ${{ inputs.app_name }}
         app_namespace: ${{ inputs.app_namespace }}
