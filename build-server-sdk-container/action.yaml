@@ -36,7 +36,7 @@ inputs:
 outputs:
   error:
     description: action's exit code
-    value: ${{ steps.dashboard.outputs.error }}    
+    value: ${{ steps.build.outputs.error }}    
 runs:
   using: composite
   steps:
@@ -49,6 +49,7 @@ runs:
         ref: ${{ inputs.github_ref }}
 
     - name: Build and Push to ghcr
+      id: build
       env:
         DOCKER_BUILDKIT: "1"
         github_token: ${{ inputs.github_token }}
