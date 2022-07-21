@@ -11,15 +11,9 @@ help:
 
 .DEFAULT_GOAL := help
 
-.PHONY: changelog git-chglog
-changelog: git-chglog ## Generate a Changelog for next version read from the git tags
-	$(GIT_CHGLOG) --next-tag v$(VERSION) > CHANGELOG.md
-
-git-chglog: ## Download git-chglog locally if necessary.
-ifeq (,$(shell which git-chglog 2>/dev/null))
-	@{ \
-	set -ex ;\
-	go get -u github.com/git-chglog/git-chglog/cmd/git-chglog ;\
-	}
-endif
-GIT_CHGLOG = $(shell which git-chglog)
+.PHONY: changelog
+GIT_CHGLOG=git-chglog
+JIRA_TASK_PATH:=https://medopadteam.atlassian.net/browse/
+changelog: ## Generate a Changelog for versions read from the Git tags.
+	$(call go-get-tool,$(GIT_CHGLOG),github.com/git-chglog/git-chglog/cmd/git-chglog@latest)
+	tools/scripts/generate-changelog.sh ${VERSION} ${JIRA_TASK_PATH}
