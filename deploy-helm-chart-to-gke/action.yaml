@@ -3,8 +3,8 @@ description: Deploy a Helm chart to GKE
 author: Denis Trofimov denis.trofimov@huma.com
 # ref: https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/
 branding:
-  color: 'purple'
-  icon: 'upload-cloud'
+  color: "purple"
+  icon: "upload-cloud"
 
 inputs:
   project_id:
@@ -50,6 +50,10 @@ inputs:
   github_token:
     description: A Github token PAT
     required: true
+  clean_workload:
+    description: Delete all workload of compose-operator kind, but not resources
+    default: "false"
+    required: false
 outputs:
   error:
     description: action's exit code
@@ -69,6 +73,13 @@ runs:
         cluster_name: ${{ inputs.cluster_name }}
         location: ${{ inputs.location }}
         credentials: ${{ inputs.gcp_credentials }}
+
+    - name: Delete all workload of compose-operator kind, but not resources
+      if: inputs.clean_workload == 'true'
+      run: |-
+        kubectl delete applicationcomposition --all=true -n ${{ inputs.app_namespace }}
+        kubectl delete application --all=true -n ${{ inputs.app_namespace }}
+      shell: bash
 
     # ref: https://helm.sh/docs/topics/registries/
     - name: Deploy a Helm chart

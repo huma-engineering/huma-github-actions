@@ -10,6 +10,15 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+<a name="v0.8.0"></a>
+## [v0.8.0] - 2022-07-21
+Feature:
+- [HCB-447] Pull new container images using rebuild command in PR preview
+
+Improvement:
+- Generate changelog
+
+
 <a name="v0.7.1"></a>
 ## [v0.7.1] - 2022-06-30
 Bug fix:
@@ -90,7 +99,8 @@ Improvement:
 - Pre-commit rules and git-chglog configuration
 
 
-[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/huma-engineering/helm-charts/compare/v0.8.0...HEAD
+[v0.8.0]: https://github.com/huma-engineering/helm-charts/compare/v0.7.1...v0.8.0
 [v0.7.1]: https://github.com/huma-engineering/helm-charts/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/huma-engineering/helm-charts/compare/v0.6.0...v0.7.0
 [v0.6.0]: https://github.com/huma-engineering/helm-charts/compare/v0.5.0...v0.6.0
@@ -98,3 +108,16 @@ Improvement:
 [v0.4.0]: https://github.com/huma-engineering/helm-charts/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/huma-engineering/helm-charts/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/huma-engineering/helm-charts/compare/v0.1.0...v0.2.0
+[HCB-447]: https://medopadteam.atlassian.net/browse/HCB-447
+[HCB-435]: https://medopadteam.atlassian.net/browse/HCB-435
+[HCB-433]: https://medopadteam.atlassian.net/browse/HCB-433
+[HCB-432]: https://medopadteam.atlassian.net/browse/HCB-432
+[HCB-430]: https://medopadteam.atlassian.net/browse/HCB-430
+[HCB-429]: https://medopadteam.atlassian.net/browse/HCB-429
+[HCB-426]: https://medopadteam.atlassian.net/browse/HCB-426
+[HCB-425]: https://medopadteam.atlassian.net/browse/HCB-425
+[HCB-424]: https://medopadteam.atlassian.net/browse/HCB-424
+[HCB-423]: https://medopadteam.atlassian.net/browse/HCB-423
+[HCB-422]: https://medopadteam.atlassian.net/browse/HCB-422
+[HCB-417]: https://medopadteam.atlassian.net/browse/HCB-417
+[HCB-416]: https://medopadteam.atlassian.net/browse/HCB-416
